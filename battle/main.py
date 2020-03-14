@@ -1,6 +1,6 @@
-from battle.classes.game import Person, bcolors
-from battle.classes.magic import Spell
-from battle.classes.inventory import Item
+from classes.game import Person, bcolors
+from classes.magic import Spell
+from classes.inventory import Item
 
 print("\n\n")
 
