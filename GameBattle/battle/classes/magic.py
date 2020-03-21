@@ -11,6 +11,3 @@ class Spell:
         low = self.dmg - 15
         high = self.dmg + 15
         return random.randrange(low,high)
-
-    def jetest(self)
-        toto = self.dmg
