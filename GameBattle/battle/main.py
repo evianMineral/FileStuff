@@ -14,6 +14,7 @@ quake = Spell("Quake", 14, 140, "black")
 #create White Magic
 cure = Spell("Cure", 25, 620, "white")
 cura = Spell("Cura", 32, 1500, "white")
+curaga  = Spell("Curaga", 50, 6000, "white")
 
 #create some Item
 potion = Item("Potion", "potion", "Heals 50 HP", 50)
@@ -25,6 +26,7 @@ hiElixer= Item("MegaElixer", "elixer", "Fully restore HP/MP party's member", 999
 grenade = Item("Grenad","attack","Deals 500 damage",500)
 
 player_magic = [fire, thunder, blizzard, meteor, quake,cure, cura]
+enemy_spells = [fire, meteor, curaga]
 player_item = [{"item" : potion, "quantity": 15 }, {"item" : hiPotion, "quantity": 5 }, 
                {"item" : superPotion, "quantity": 5 }, {"item" : elixer, "quantity": 5 }, 
                {"item" : hiElixer, "quantity": 2 }, {"item" : grenade, "quantity": 5 }]
@@ -33,9 +35,9 @@ player1 = Person("Valos:",3260,132,300,34, player_magic, player_item)
 player2 = Person("Nick :",4160,188,311,34, player_magic, player_item)
 player3 = Person("Robot:",3089,175,288,34, player_magic, player_item)
 
-enemy2 = Person("Imp  ",1250, 130, 560, 325, [], [])
-enemy1 = Person("Magus",18200, 701, 525, 25, [], [])
-enemy3 = Person("Imp  ",1250, 130, 560, 325, [], [])
+enemy2 = Person("Imp  ",1250, 130, 560, 325, enemy_spells, [])
+enemy1 = Person("Magus",18200, 701, 525, 25, enemy_spells, [])
+enemy3 = Person("Imp  ",1250, 130, 560, 325, enemy_spells, [])
 
 players = [player1,player2, player3]
 enemies = [enemy2, enemy1, enemy3]
@@ -71,7 +73,7 @@ while running:
             enemy = player.choose_target(enemies)
 
             enemies[enemy].take_damage(dmg)
-            print("You attacked" + enemies[enemy].name.replace(" ","") + " for", dmg," point of damage.")
+            print("You attacked " + enemies[enemy].name.replace(" ","") + " for", dmg," point of damage.")
 
             if enemies[enemy].get_hp()==0:
                 print(enemies[enemy].name.replace(" ",""), "has died.")
@@ -144,12 +146,7 @@ while running:
                     print(enemies[enemy].name.replace(" ",""), "has died.")
                     del enemies[enemy]
 
-    enemy_choice = 1
-    target = random.randrange(0,3)
-    enemy_dmg = enemies[0].generate_damage()
-    players[target].take_damage(enemy_dmg)
-    print("Enemy attacked for", enemy_dmg)
-
+    # Check if battle is over
     defeated_enemies = 0
     defeated_players = 0
 
@@ -161,10 +158,45 @@ while running:
         if enemy.get_hp == 0:
             defeated_enemies += 1
 
-
+    # Check if player won
     if defeated_enemies == 2:
         print(bcolors.OKGREEN + "You win!" + bcolors.ENDC)
         running = False
+
+    # Check if enemy won    
     elif defeated_players == 2 :
         print(bcolors.FAIL + "You loose like a bouse"+ bcolors.ENDC)
         running = False
+
+    print("\n")
+    # Enemy attack phase
+    for enemy in enemies:
+        # Chose attack
+        enemy_choice = random.randrange(0, 2)
+
+        if enemy_choice == 0:
+            target = random.randrange(0,3)
+            enemy_dmg = enemy.generate_damage()
+
+            players[target].take_damage(enemy_dmg)
+            print(enemy.name.replace(" ", "") + " attacked "+ players[target].name.replace(" ","") + " for", enemy_dmg)
+
+        elif enemy_choice == 1:
+            spell, magic_dmg = enemy.choose_enemy_spell()
+            enemy.reduce_mp(spell.cost)
+
+            if spell.type=="white":
+                enemy.heal(magic_dmg)
+                print(bcolors.OKBLUE + spell.name + " heals "+ enemy.name + " for", str(magic_dmg), "HP." + bcolors.ENDC)
+            elif spell.type == "black":
+                target = random.randrange(0,3)
+                players[target].take_damage(magic_dmg)
+
+                print(bcolors.OKBLUE+ "\n", enemy.name.replace(" ","") + "'s " + spell.name, "deals", str(magic_dmg), "points of damage to" + players[target].name.replace(" ","") + bcolors.ENDC)
+
+                if players[target].get_hp()==0:
+                    print(players[target].name.replace(" ",""), "has died.")
+                    del players[target]
+
+            #print("Enemy chose", spell, "damage is", magic_dmg)
+    
